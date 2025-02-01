@@ -21,7 +21,7 @@ endif
 
 ifndef TAG
 	# take explicit tag from Makefile if present otherwise infer tag from first ARG *_VERSION=N.N in Dockerfile
-	TAG := $(shell { perl -n -e '/REPO.*\w+\/\w+:(\d+\.\d+|\w+)/ && &{print "$1\n"; exit}' Makefile; perl -n -e '/^\s*ARG\s+.+_VERSION\s*=\s*"?(\d+\.\d+|latest)"?/ && &{ print $$1; exit }; /^\s*ARG\s+.*RELEASE\s*=\s*"?([^"]*)"?/ && &{ print $$1; exit }' Dockerfile; } | head -n1)
+	TAG := $(shell { perl -n -e '/REPO.*\w+\/\w+:(\d+\.\d+|\w+)/ && &{print "$1\n"; exit}' Makefile; perl -n -e '/^\s*ARG\s+.*(?:VERSION|RELEASE)\s*=\s*"?([^"]*)"?/ && &{ print $$1; exit }' Dockerfile; } | head -n1)
 endif
 
 ifndef REPO
@@ -211,21 +211,44 @@ run-fg: runcmd-fg
 .PHONY: sh
 sh:
 	#make -e MAP_PORTS="" run
-	docker run -ti --rm -v $$PWD:/code --entrypoint sh $(REPO_TAG)
+	docker run -ti --rm -v "$$PWD:/code" --entrypoint sh "$(REPO_TAG)"
 
 .PHONY: bash
 bash:
 	#make -e MAP_PORTS="" run
-	docker run -ti --rm -v $$PWD:/code --entrypoint bash $(REPO_TAG)
+	docker run -ti --rm -v "$$PWD:/code" -w "$$PWD/code" --entrypoint bash "$(REPO_TAG)"
 
 .PHONY: test
 test:
 	#docker run -ti $(REPO) sh -c 'if test -f tests/all.sh; then tests/all.sh; fi;'
-	docker run -ti $(REPO) tests/all.sh
+	docker run -ti "$(REPO)" tests/all.sh
 
 .PHONY: interactive
 interactive:
-	docker run -ti --rm -v $$PWD:/code `awk '/^FROM /{print $$2; exit}' Dockerfile` sh
+	docker run -ti --rm \
+		-v "$$PWD:/code" \
+		-w /code \
+		"$$(awk '/^FROM /{print $$2; exit}' Dockerfile)" \
+		sh -c 'if type bash >/dev/null 2>&1; then exec bash; else exec sh; fi'
+
+.PHONY: build-script
+build-script:
+	path="$$(awk '/^[[:space:]]*ENV PATH / {print $$3}' Dockerfile)" && \
+	build_script="$$(awk '/^[[:space:]]*ADD .* \/build.sh/ {print $$2}' Dockerfile)" && \
+	wget -cO build.sh "$$build_script" && \
+	chmod +x build.sh && \
+	docker run -ti --rm \
+		-v "$$PWD:/code" \
+		-w /code \
+		-e path="$$path" \
+		-e DEBUG="$$DEBUG" \
+		"$$(awk '/^FROM /{print $$2; exit}' Dockerfile)" \
+		sh -c 'export PATH="$$PATH:$$path"; ./build.sh; if type bash >/dev/null 2>&1; then exec bash; else exec sh; fi'
+
+.PHONY: build-debug
+build-debug:
+	export DEBUG=1 && \
+	$(MAKE) build-script
 
 .PHONY: browse
 browse:

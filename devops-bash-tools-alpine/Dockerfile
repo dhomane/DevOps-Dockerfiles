@@ -12,7 +12,7 @@
 #
 
 # nosemgrep: dockerfile.audit.dockerfile-source-not-pinned.dockerfile-source-not-pinned
-FROM alpine:3.12
+FROM alpine:3.20
 
 LABEL org.opencontainers.image.description="Bash Tools" \
       org.opencontainers.image.authors="Hari Sekhon (https://www.linkedin.com/in/HariSekhon)" \
@@ -22,6 +22,46 @@ LABEL org.opencontainers.image.description="Bash Tools" \
 
 # used by build.sh to figure out which repo to bootstrap
 ENV PATH $PATH:/github/bash-tools
+
+# access the scripts via the $PATH - safer than trying to do .profile injection since it may not be triggered
+ENV PATH $PATH:/github/bash-tools/ai
+ENV PATH $PATH:/github/bash-tools/appveyor
+ENV PATH $PATH:/github/bash-tools/aws
+ENV PATH $PATH:/github/bash-tools/azure_devops
+ENV PATH $PATH:/github/bash-tools/bigdata
+ENV PATH $PATH:/github/bash-tools/bin
+ENV PATH $PATH:/github/bash-tools/bitbucket
+ENV PATH $PATH:/github/bash-tools/buildkite
+ENV PATH $PATH:/github/bash-tools/checks
+ENV PATH $PATH:/github/bash-tools/cicd
+ENV PATH $PATH:/github/bash-tools/circleci
+ENV PATH $PATH:/github/bash-tools/cloudflare
+ENV PATH $PATH:/github/bash-tools/data
+ENV PATH $PATH:/github/bash-tools/docker
+ENV PATH $PATH:/github/bash-tools/drone
+ENV PATH $PATH:/github/bash-tools/gcp
+ENV PATH $PATH:/github/bash-tools/git
+ENV PATH $PATH:/github/bash-tools/github
+ENV PATH $PATH:/github/bash-tools/gitlab
+ENV PATH $PATH:/github/bash-tools/install
+ENV PATH $PATH:/github/bash-tools/ipaas
+ENV PATH $PATH:/github/bash-tools/java
+ENV PATH $PATH:/github/bash-tools/jenkins
+ENV PATH $PATH:/github/bash-tools/kafka
+ENV PATH $PATH:/github/bash-tools/kubernetes
+ENV PATH $PATH:/github/bash-tools/media
+ENV PATH $PATH:/github/bash-tools/monitoring
+ENV PATH $PATH:/github/bash-tools/mysql
+ENV PATH $PATH:/github/bash-tools/packages
+ENV PATH $PATH:/github/bash-tools/perl
+ENV PATH $PATH:/github/bash-tools/pingdom
+ENV PATH $PATH:/github/bash-tools/postgres
+ENV PATH $PATH:/github/bash-tools/python
+ENV PATH $PATH:/github/bash-tools/scripts
+ENV PATH $PATH:/github/bash-tools/search
+ENV PATH $PATH:/github/bash-tools/setup
+ENV PATH $PATH:/github/bash-tools/spotify
+ENV PATH $PATH:/github/bash-tools/terraform
 
 ADD https://raw.githubusercontent.com/HariSekhon/DevOps-Bash-tools/master/setup/docker_bootstrap.sh /build.sh
 
